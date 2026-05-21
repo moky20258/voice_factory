@@ -1,0 +1,51 @@
+{
+  "voice_features": {
+    "f0_mean": 296.17437107942544,
+    "f0_std": 58.64826799797309,
+    "pitch_range": 193.1872657849692,
+    "estimated_gender": "female",
+    "gender_confidence": 0.95,
+    "age_range": "female_high",
+    "spectral_centroid_mean": 2301.7402761673725
+  },
+  "pretrained_matches": [
+    {
+      "id": "female_high_001",
+      "name": "女高音 - 清亮",
+      "score": 84.20256818792176,
+      "description": "清亮女声，适合年轻角色、活泼表达"
+    },
+    {
+      "id": "female_normal_001",
+      "name": "女中音 - 标准",
+      "score": 61.49459228196116,
+      "description": "标准女声，适合对话、讲解"
+    },
+    {
+      "id": "female_low_001",
+      "name": "女低音 - 温柔",
+      "score": 46.805926479868205,
+      "description": "温柔女声，适合抒情、安抚"
+    }
+  ],
+  "trained_matches": [
+    {
+      "id": "speaker_0001",
+      "score": 20.0,
+      "model_v2": "W:\\rvc\\logs\\speaker_0001\\speaker_0001_v2.pth",
+      "index_file": "W:\\rvc\\logs\\speaker_0001\\added_50.index"
+    },
+    {
+      "id": "speaker_0002",
+      "score": 20.0,
+      "model_v2": "W:\\rvc\\logs\\speaker_0002\\speaker_0002_v2.pth",
+      "index_file": "W:\\rvc\\logs\\speaker_0002\\added_50.index"
+    },
+    {
+      "id": "speaker_0003",
+      "score": 20.0,
+      "model_v2": "W:\\rvc\\logs\\speaker_0003\\speaker_0003_v2.pth",
+      "index_file": "W:\\rvc\\logs\\speaker_0003\\added_50.index"
+    }
+  ]
+}

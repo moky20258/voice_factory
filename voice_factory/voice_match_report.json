@@ -1,0 +1,51 @@
+{
+  "voice_features": {
+    "f0_mean": 133.56187817875738,
+    "f0_std": 43.17843527620053,
+    "pitch_range": 194.81070866093103,
+    "estimated_gender": "male",
+    "gender_confidence": 0.6571906091062131,
+    "age_range": "adult_normal",
+    "spectral_centroid_mean": 1409.2347071671395
+  },
+  "pretrained_matches": [
+    {
+      "id": "male_normal_001",
+      "name": "男中音 - 标准",
+      "score": 97.54599927270607,
+      "description": "标准男声，适合对话、讲解"
+    },
+    {
+      "id": "male_deep_001",
+      "name": "男低音 - 深沉",
+      "score": 89.41603185040952,
+      "description": "低沉男声，适合旁白、播音"
+    },
+    {
+      "id": "male_high_001",
+      "name": "男高音 - 明亮",
+      "score": 78.8096584360839,
+      "description": "明亮男声，适合年轻角色、活力表达"
+    }
+  ],
+  "trained_matches": [
+    {
+      "id": "speaker_0003",
+      "score": 49.841726756701824,
+      "model_v2": "W:\\rvc\\logs\\speaker_0003\\speaker_0003_v2.pth",
+      "index_file": "W:\\rvc\\logs\\speaker_0003\\added_50.index"
+    },
+    {
+      "id": "speaker_0009",
+      "score": 49.841726756701824,
+      "model_v2": "W:\\rvc\\logs\\speaker_0009\\speaker_0009_v2.pth",
+      "index_file": "W:\\rvc\\logs\\speaker_0009\\added_50.index"
+    },
+    {
+      "id": "speaker_0013",
+      "score": 48.39759709519156,
+      "model_v2": "W:\\rvc\\logs\\speaker_0013\\speaker_0013_v2.pth",
+      "index_file": "W:\\rvc\\logs\\speaker_0013\\added_50.index"
+    }
+  ]
+}

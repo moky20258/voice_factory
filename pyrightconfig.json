@@ -2,5 +2,7 @@
     "exclude": [
         "data",
         "filelists"
-    ]
+    ],
+    "typeCheckingMode": "off",
+    "useLibraryCodeForTypes": false
 }

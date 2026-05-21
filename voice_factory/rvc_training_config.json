@@ -1,0 +1,26 @@
+{
+    "timestamp": "2026-05-20 22:40:36",
+    "total_speakers": 20,
+    "speakers": {
+        "speaker_0001": 170,
+        "speaker_0002": 170,
+        "speaker_0003": 200,
+        "speaker_0004": 180,
+        "speaker_0005": 140,
+        "speaker_0006": 150,
+        "speaker_0007": 110,
+        "speaker_0008": 200,
+        "speaker_0009": 130,
+        "speaker_0010": 170,
+        "speaker_0011": 170,
+        "speaker_0012": 150,
+        "speaker_0013": 230,
+        "speaker_0014": 120,
+        "speaker_0015": 160,
+        "speaker_0016": 150,
+        "speaker_0017": 220,
+        "speaker_0018": 140,
+        "speaker_0019": 100,
+        "speaker_0020": 190
+    }
+}

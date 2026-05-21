@@ -31,3 +31,20 @@ asr-label*
 /faster_whisper
 /.gradio
 *log
+
+# 声模工厂生成产物(保留代码和文档)
+/voice_factory/embeddings/
+/voice_factory/enhanced/
+/voice_factory/filtered/
+/voice_factory/metadata/
+/voice_factory/metadata_enhanced/
+/voice_factory/outputs/
+/voice_factory/reports/
+/voice_factory/texts/
+/voice_factory/voice_database/
+/voice_factory/*.pth
+/voice_factory/*.index
+/voice_factory/*.wav
+/voice_factory/*.mp3
+/voice_factory/*.npy
+/voice_factory/*.log

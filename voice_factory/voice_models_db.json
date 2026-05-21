@@ -1,0 +1,199 @@
+{
+  "voice_models": [
+    {
+      "id": "male_deep_001",
+      "name": "男低音 - 深沉",
+      "category": "male",
+      "subcategory": "deep",
+      "description": "低沉男声，适合旁白、播音",
+      "pretrained_G": "W:\\rvc\\assets\\pretrained_v2\\f0G40k.pth",
+      "pretrained_D": "W:\\rvc\\assets\\pretrained_v2\\f0D40k.pth",
+      "voice_characteristics": {
+        "f0_mean": 120.0,
+        "f0_std": 20.0,
+        "f0_range_min": 80.0,
+        "f0_range_max": 200.0,
+        "gender": "male",
+        "age_range": "adult_deep",
+        "voice_type": "deep_warm",
+        "spectral_centroid_mean": 1200.0,
+        "brightness": "low",
+        "warmth": "high"
+      },
+      "training_recommendations": {
+        "min_epochs": 20,
+        "max_epochs": 80,
+        "learning_rate": 0.0001,
+        "batch_size": 8,
+        "min_audio_minutes": 10
+      },
+      "tags": ["男声", "低音", "温暖", "播音", "旁白"],
+      "usage_count": 0,
+      "success_rate": 0.0
+    },
+    {
+      "id": "male_normal_001",
+      "name": "男中音 - 标准",
+      "category": "male",
+      "subcategory": "normal",
+      "description": "标准男声，适合对话、讲解",
+      "pretrained_G": "W:\\rvc\\assets\\pretrained_v2\\f0G40k.pth",
+      "pretrained_D": "W:\\rvc\\assets\\pretrained_v2\\f0D40k.pth",
+      "voice_characteristics": {
+        "f0_mean": 145.0,
+        "f0_std": 25.0,
+        "f0_range_min": 90.0,
+        "f0_range_max": 250.0,
+        "gender": "male",
+        "age_range": "adult_normal",
+        "voice_type": "neutral",
+        "spectral_centroid_mean": 1500.0,
+        "brightness": "medium",
+        "warmth": "medium"
+      },
+      "training_recommendations": {
+        "min_epochs": 30,
+        "max_epochs": 100,
+        "learning_rate": 0.0001,
+        "batch_size": 8,
+        "min_audio_minutes": 15
+      },
+      "tags": ["男声", "中音", "标准", "对话", "通用"],
+      "usage_count": 0,
+      "success_rate": 0.0
+    },
+    {
+      "id": "male_high_001",
+      "name": "男高音 - 明亮",
+      "category": "male",
+      "subcategory": "high",
+      "description": "明亮男声，适合年轻角色、活力表达",
+      "pretrained_G": "W:\\rvc\\assets\\pretrained_v2\\f0G40k.pth",
+      "pretrained_D": "W:\\rvc\\assets\\pretrained_v2\\f0D40k.pth",
+      "voice_characteristics": {
+        "f0_mean": 180.0,
+        "f0_std": 30.0,
+        "f0_range_min": 110.0,
+        "f0_range_max": 320.0,
+        "gender": "male",
+        "age_range": "adult_high",
+        "voice_type": "bright",
+        "spectral_centroid_mean": 1800.0,
+        "brightness": "high",
+        "warmth": "low"
+      },
+      "training_recommendations": {
+        "min_epochs": 30,
+        "max_epochs": 100,
+        "learning_rate": 0.0001,
+        "batch_size": 8,
+        "min_audio_minutes": 15
+      },
+      "tags": ["男声", "高音", "明亮", "年轻", "活力"],
+      "usage_count": 0,
+      "success_rate": 0.0
+    },
+    {
+      "id": "female_low_001",
+      "name": "女低音 - 温柔",
+      "category": "female",
+      "subcategory": "low",
+      "description": "温柔女声，适合抒情、安抚",
+      "pretrained_G": "W:\\rvc\\assets\\pretrained_v2\\f0G40k.pth",
+      "pretrained_D": "W:\\rvc\\assets\\pretrained_v2\\f0D40k.pth",
+      "voice_characteristics": {
+        "f0_mean": 185.0,
+        "f0_std": 28.0,
+        "f0_range_min": 120.0,
+        "f0_range_max": 300.0,
+        "gender": "female",
+        "age_range": "adult_high",
+        "voice_type": "soft_gentle",
+        "spectral_centroid_mean": 1600.0,
+        "brightness": "medium",
+        "warmth": "high"
+      },
+      "training_recommendations": {
+        "min_epochs": 30,
+        "max_epochs": 100,
+        "learning_rate": 0.0001,
+        "batch_size": 8,
+        "min_audio_minutes": 15
+      },
+      "tags": ["女声", "低音", "温柔", "抒情", "安抚"],
+      "usage_count": 0,
+      "success_rate": 0.0
+    },
+    {
+      "id": "female_normal_001",
+      "name": "女中音 - 标准",
+      "category": "female",
+      "subcategory": "normal",
+      "description": "标准女声，适合对话、讲解",
+      "pretrained_G": "W:\\rvc\\assets\\pretrained_v2\\f0G40k.pth",
+      "pretrained_D": "W:\\rvc\\assets\\pretrained_v2\\f0D40k.pth",
+      "voice_characteristics": {
+        "f0_mean": 215.0,
+        "f0_std": 32.0,
+        "f0_range_min": 140.0,
+        "f0_range_max": 380.0,
+        "gender": "female",
+        "age_range": "female_normal",
+        "voice_type": "neutral",
+        "spectral_centroid_mean": 1900.0,
+        "brightness": "medium",
+        "warmth": "medium"
+      },
+      "training_recommendations": {
+        "min_epochs": 30,
+        "max_epochs": 100,
+        "learning_rate": 0.0001,
+        "batch_size": 8,
+        "min_audio_minutes": 15
+      },
+      "tags": ["女声", "中音", "标准", "对话", "通用"],
+      "usage_count": 0,
+      "success_rate": 0.0
+    },
+    {
+      "id": "female_high_001",
+      "name": "女高音 - 清亮",
+      "category": "female",
+      "subcategory": "high",
+      "description": "清亮女声，适合年轻角色、活泼表达",
+      "pretrained_G": "W:\\rvc\\assets\\pretrained_v2\\f0G40k.pth",
+      "pretrained_D": "W:\\rvc\\assets\\pretrained_v2\\f0D40k.pth",
+      "voice_characteristics": {
+        "f0_mean": 260.0,
+        "f0_std": 38.0,
+        "f0_range_min": 170.0,
+        "f0_range_max": 450.0,
+        "gender": "female",
+        "age_range": "female_high",
+        "voice_type": "bright_clear",
+        "spectral_centroid_mean": 2200.0,
+        "brightness": "high",
+        "warmth": "low"
+      },
+      "training_recommendations": {
+        "min_epochs": 30,
+        "max_epochs": 100,
+        "learning_rate": 0.0001,
+        "batch_size": 8,
+        "min_audio_minutes": 15
+      },
+      "tags": ["女声", "高音", "清亮", "年轻", "活泼"],
+      "usage_count": 0,
+      "success_rate": 0.0
+    }
+  ],
+  "matching_weights": {
+    "f0_mean": 0.40,
+    "f0_range": 0.20,
+    "gender": 0.15,
+    "spectral_centroid": 0.15,
+    "voice_type": 0.10
+  },
+  "version": "1.0",
+  "last_updated": "2026-05-21"
+}

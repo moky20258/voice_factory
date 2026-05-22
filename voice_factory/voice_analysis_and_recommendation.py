@@ -345,8 +345,20 @@ class VoiceAnalyzerAndMatcher:
             for i, match in enumerate(trained_matches, 1):
                 voice = match['voice']
                 score = match['score']
-                print(f"   {i}. {voice['id']}")
+                portrait = voice.get('portrait', '未分类')
+                description = voice.get('description', '')
+                portrait_details = voice.get('portrait_details', {})
+                
+                print(f"   {i}. {voice['id']} - {portrait}")
                 print(f"      匹配度: {score:.1f}%")
+                if description:
+                    print(f"      描述: {description}")
+                if portrait_details.get('age_range'):
+                    print(f"      年龄: {portrait_details['age_range']}")
+                if portrait_details.get('tone'):
+                    print(f"      音色: {portrait_details['tone']}")
+                if portrait_details.get('suitable_scenes'):
+                    print(f"      适用: {', '.join(portrait_details['suitable_scenes'][:5])}")
                 print(f"      模型文件: {voice.get('model_v2', 'N/A')}")
                 print(f"      索引文件: {voice.get('index_file', 'N/A')}")
         
@@ -381,6 +393,9 @@ class VoiceAnalyzerAndMatcher:
                 'trained_matches': [
                     {
                         'id': m['voice']['id'],
+                        'portrait': m['voice'].get('portrait', '未分类'),
+                        'description': m['voice'].get('description', ''),
+                        'portrait_details': m['voice'].get('portrait_details', {}),
                         'score': m['score'],
                         'model_v2': m['voice'].get('model_v2'),
                         'index_file': m['voice'].get('index_file')

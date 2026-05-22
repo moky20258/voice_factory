@@ -48,15 +48,45 @@ def run_dsp_enhancement(audio_dir: str) -> str:
     """
     print(f"\n[2/6] DSP 增强处理...")
     
-    # 这里复用现有的 dsp_enhancer.py
-    # 简化版本：直接返回原目录（实际应该调用 DSP 增强）
-    enhanced_dir = audio_dir.replace("outputs", "enhanced")
-    os.makedirs(enhanced_dir, exist_ok=True)
-    
-    print(f"⚠️  DSP 增强功能需要集成 dsp_enhancer.py")
-    print(f"💡 暂时使用原始音频进行训练")
-    
-    return audio_dir
+    try:
+        import subprocess
+        speaker_name = os.path.basename(audio_dir)
+        enhanced_dir = audio_dir.replace("outputs", "enhanced")
+        os.makedirs(enhanced_dir, exist_ok=True)
+        
+        # 对每个音频应用轻微的均衡器增强
+        enhanced_count = 0
+        for filename in os.listdir(audio_dir):
+            if filename.endswith('.wav'):
+                try:
+                    input_path = os.path.join(audio_dir, filename)
+                    output_path = os.path.join(enhanced_dir, filename)
+                    
+                    # 使用 FFmpeg 应用轻微的音频增强
+                    cmd = [
+                        "ffmpeg", "-y", "-i", input_path,
+                        "-af", "equalizer=f=1000:width_type=h:width=2:g=2",  # 轻微增强中频
+                        "-ar", "44100", "-ac", "1",  # 统一采样率
+                        output_path
+                    ]
+                    
+                    result = subprocess.run(cmd, capture_output=True, timeout=30)
+                    if result.returncode == 0:
+                        enhanced_count += 1
+                except Exception as e:
+                    print(f"  ⚠️  增强失败 {filename}: {e}")
+        
+        if enhanced_count > 0:
+            print(f"✅ DSP 增强完成: {enhanced_count} 个音频")
+            return enhanced_dir
+        else:
+            print("⚠️  DSP 增强失败，使用原始音频")
+            return audio_dir
+            
+    except Exception as e:
+        print(f"⚠️  DSP 增强异常: {e}")
+        print("💡 暂时使用原始音频进行训练")
+        return audio_dir
 
 
 def run_quality_filter(audio_dir: str) -> str:
@@ -134,14 +164,40 @@ def train_rvc_model(rvc_data_dir: str, speaker_name: str, epochs: int = 50):
         epochs: 训练轮数
     """
     print(f"\n[5/6] RVC 训练...")
-    print(f"⚠️  RVC 训练功能需要集成 rvc_full_auto_train.py")
-    print(f"💡 请手动运行训练:")
-    print(f"   python rvc_full_auto_train.py --speakers {speaker_name} --epochs {epochs}")
-    print(f"\n训练完成后，请按 Enter 继续...")
+    print(f"🚀 开始 RVC 训练: {speaker_name}")
+    print(f"⏳ 这可能需要 30-60 分钟，请耐心等待...")
     
-    # 这里应该调用 rvc_full_auto_train.py
-    # 由于训练时间较长，暂时改为手动执行
-    input()
+    try:
+        import subprocess
+        
+        # 调用 RVC 完全自动化训练脚本
+        rvc_script = os.path.join(os.path.dirname(os.path.abspath(__file__)), "rvc_full_auto_train.py")
+        
+        cmd = [
+            sys.executable, rvc_script,
+            "--speakers", speaker_name,
+            "--epochs", str(epochs)
+        ]
+        
+        print(f"📋 执行命令: {' '.join(cmd)}")
+        
+        # 运行训练
+        result = subprocess.run(cmd, timeout=None)  # 不设置超时，让训练完成
+        
+        if result.returncode == 0:
+            print(f"\n✅ RVC 训练完成: {speaker_name}")
+        else:
+            print(f"\n❌ RVC 训练失败，返回码: {result.returncode}")
+            raise Exception(f"RVC 训练失败，返回码: {result.returncode}")
+            
+    except KeyboardInterrupt:
+        print("\n⚠️  训练被用户中断")
+        raise
+    except Exception as e:
+        print(f"\n❌ RVC 训练异常: {e}")
+        import traceback
+        traceback.print_exc()
+        raise
 
 
 def add_portrait_to_database(speaker_name: str, portrait: str, tts_params: dict):

@@ -5659,8 +5659,38 @@
         ],
         "characteristics": "声音自信有力，富有领导力和感染力"
       }
+    },
+    {
+      "id": "speaker_0021",
+      "name": "已训练声模 - speaker_0021",
+      "portrait": "男，中老年（50-60岁），苍老感，稳重，深沉，中音",
+      "description": "成熟稳重的中年男性声音，音色浑厚温暖",
+      "portrait_details": {
+        "age_range": "未知",
+        "gender": "未知",
+        "voice_type": "未知",
+        "tone": "男，中老年（50-60岁），苍老感，稳重，深沉，中音",
+        "suitable_scenes": [],
+        "characteristics": "成熟稳重的中年男性声音，音色浑厚温暖",
+        "generated_by_tts": true,
+        "tts_params": {
+          "temperature": 0.75,
+          "top_p": 0.85,
+          "repetition_penalty": 1.15,
+          "seed": 2036,
+          "portrait": "男，中老年（50-60岁），苍老感，稳重，深沉，中音",
+          "description": "成熟稳重的中年男性声音，音色浑厚温暖"
+        }
+      },
+      "speaker_dir": "W:\\rvc\\logs\\speaker_0021",
+      "model_v2": "W:\\rvc\\logs\\speaker_0021\\speaker_0021_v2.pth",
+      "model_g": "W:\\rvc\\logs\\speaker_0021\\G_50.pth",
+      "index_file": "W:\\rvc\\logs\\speaker_0021\\added_50.index",
+      "embedding": null,
+      "created_at": "2026-05-22 23:10:03",
+      "generation_method": "TTS从人物画像生成"
     }
   ],
-  "total_count": 20,
+  "total_count": 21,
   "last_updated": "2026-05-21"
 }

@@ -101,25 +101,13 @@ def run_quality_filter(audio_dir: str) -> str:
     """
     print(f"\n[3/6] 质量筛选...")
     
-    # 这里复用现有的 quality_filter.py
-    filtered_dir = audio_dir.replace("outputs", "filtered")
-    os.makedirs(filtered_dir, exist_ok=True)
+    # 直接返回 enhanced 目录，跳过复制步骤（避免文件占用问题）
+    print(f"💡 跳过质量筛选，直接使用增强后的音频")
     
-    print(f"⚠️  质量筛选功能需要集成 quality_filter.py")
-    print(f"💡 暂时使用全部音频进行训练")
+    audio_count = len([f for f in os.listdir(audio_dir) if f.endswith(".wav")])
+    print(f"✅ 使用 {audio_count} 句音频进行训练")
     
-    # 复制所有音频到 filtered 目录
-    import shutil
-    for file in os.listdir(audio_dir):
-        if file.endswith(".wav"):
-            src = os.path.join(audio_dir, file)
-            dst = os.path.join(filtered_dir, file)
-            shutil.copy2(src, dst)
-    
-    audio_count = len([f for f in os.listdir(filtered_dir) if f.endswith(".wav")])
-    print(f"✅ 筛选通过 {audio_count} 句音频")
-    
-    return filtered_dir
+    return audio_dir
 
 
 def prepare_rvc_training_data(filtered_dir: str, speaker_name: str) -> str:

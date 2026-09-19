@@ -21,8 +21,8 @@
         "warmth": "high"
       },
       "training_recommendations": {
-        "min_epochs": 20,
-        "max_epochs": 80,
+        "min_epochs": 200,
+        "max_epochs": 2000,
         "learning_rate": 0.0001,
         "batch_size": 8,
         "min_audio_minutes": 10
@@ -52,8 +52,8 @@
         "warmth": "medium"
       },
       "training_recommendations": {
-        "min_epochs": 30,
-        "max_epochs": 100,
+        "min_epochs": 200,
+        "max_epochs": 2000,
         "learning_rate": 0.0001,
         "batch_size": 8,
         "min_audio_minutes": 15
@@ -83,8 +83,8 @@
         "warmth": "low"
       },
       "training_recommendations": {
-        "min_epochs": 30,
-        "max_epochs": 100,
+        "min_epochs": 200,
+        "max_epochs": 2000,
         "learning_rate": 0.0001,
         "batch_size": 8,
         "min_audio_minutes": 15
@@ -114,8 +114,8 @@
         "warmth": "high"
       },
       "training_recommendations": {
-        "min_epochs": 30,
-        "max_epochs": 100,
+        "min_epochs": 200,
+        "max_epochs": 2000,
         "learning_rate": 0.0001,
         "batch_size": 8,
         "min_audio_minutes": 15
@@ -145,8 +145,8 @@
         "warmth": "medium"
       },
       "training_recommendations": {
-        "min_epochs": 30,
-        "max_epochs": 100,
+        "min_epochs": 200,
+        "max_epochs": 2000,
         "learning_rate": 0.0001,
         "batch_size": 8,
         "min_audio_minutes": 15
@@ -176,8 +176,8 @@
         "warmth": "low"
       },
       "training_recommendations": {
-        "min_epochs": 30,
-        "max_epochs": 100,
+        "min_epochs": 200,
+        "max_epochs": 2000,
         "learning_rate": 0.0001,
         "batch_size": 8,
         "min_audio_minutes": 15

@@ -16,6 +16,7 @@ from datetime import datetime
 # 配置
 # =========================
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
+RVC_DIR = r"W:\rvc"
 TEXTS_DIR = os.path.join(PROJECT_ROOT, "texts")
 OUTPUTS_DIR = os.path.join(PROJECT_ROOT, "outputs")
 META_DIR = os.path.join(PROJECT_ROOT, "metadata")
@@ -219,8 +220,115 @@ def generate_summary():
     print("   记录每个声模的特征和适用场景")
     print()
     print("=" * 70)
-    print("🎉 声模工厂流水线完成！")
+    print("\U0001f389 声模工厂流水线完成！")
     print("=" * 70)
+
+
+def launch_realtime_vc():
+    """启动 RVC 实时变声 GUI"""
+    print("=" * 70)
+    print("  RVC 实时变声 - 启动")
+    print("=" * 70)
+    print()
+
+    # 扫描可用模型
+    sys.path.insert(0, RVC_DIR)
+    try:
+        from tools.voice_factory_discovery import discover_all_models
+        models = discover_all_models()
+    except Exception as e:
+        print(f"  扫描模型失败: {e}")
+        models = []
+
+    if not models:
+        print("  没有找到已训练的 RVC 模型")
+        print("  请先训练模型后再使用实时变声")
+        return
+
+    print(f"  找到 {len(models)} 个模型:")
+    print()
+    for i, m in enumerate(models, 1):
+        portrait_info = f" ({m.portrait})" if m.portrait else ""
+        print(f"    {i:2d}. {m.display_name}{portrait_info}")
+    print()
+    print("  提示: 选择模型编号将自动启动 RVC GUI 并加载模型")
+    print("  输入 0 直接启动 RVC GUI (手动选择模型)")
+    print()
+
+    choice = input("  请选择 (0-%d, 回车=0): " % len(models)).strip()
+    print()
+
+    # 构造启动命令
+    rvc_python = os.path.join(RVC_DIR, "runtime", "python.exe")
+    gui_script = os.path.join(RVC_DIR, "gui_v1.py")
+
+    if not os.path.isfile(rvc_python):
+        # 回退到系统 Python
+        rvc_python = sys.executable
+
+    if not os.path.isfile(gui_script):
+        print(f"  RVC GUI 不存在: {gui_script}")
+        return
+
+    # 如果选择了特定模型，创建预设
+    if choice and choice != "0":
+        try:
+            idx = int(choice) - 1
+            if 0 <= idx < len(models):
+                model = models[idx]
+                # 创建启动预设
+                presets_dir = os.path.join(RVC_DIR, "configs", "presets")
+                os.makedirs(presets_dir, exist_ok=True)
+                preset_data = {
+                    "pth_path": model.pth_path,
+                    "index_path": model.index_path,
+                    "pitch": 0,
+                    "formant": 0.0,
+                    "index_rate": 0.75,
+                    "rms_mix_rate": 0.25,
+                    "threhold": -45,
+                    "f0method": "fcpe",
+                    "block_time": 0.25,
+                    "crossfade_length": 0.05,
+                    "extra_time": 2.5,
+                    "sr_type": "sr_model",
+                }
+                preset_path = os.path.join(presets_dir, "_auto_launch.json")
+                with open(preset_path, "w", encoding="utf-8") as f:
+                    json.dump(preset_data, f, ensure_ascii=False, indent=2)
+
+                # 同时更新 inuse config
+                inuse_config = os.path.join(RVC_DIR, "configs", "inuse", "config.json")
+                os.makedirs(os.path.dirname(inuse_config), exist_ok=True)
+                with open(inuse_config, "w", encoding="utf-8") as f:
+                    json.dump(preset_data, f, ensure_ascii=False, indent=2)
+
+                portrait_info = f" ({model.portrait})" if model.portrait else ""
+                print(f"  已选择: {model.display_name}{portrait_info}")
+                print(f"  PTH: {model.pth_path}")
+                print(f"  Index: {model.index_path or '(无)'}")
+                print()
+            else:
+                print(f"  无效选择: {choice}")
+                return
+        except ValueError:
+            print(f"  无效输入: {choice}")
+            return
+
+    print("  启动 RVC 实时变声 GUI...")
+    print()
+
+    import subprocess
+    try:
+        subprocess.Popen(
+            [rvc_python, gui_script],
+            cwd=RVC_DIR,
+        )
+        print("  RVC GUI 已在新窗口启动！")
+        print("  请在 GUI 中点击 '开始音频转换' 开始实时变声")
+    except Exception as e:
+        print(f"  启动失败: {e}")
+    print()
 
 
 def main():
@@ -230,10 +338,11 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 示例:
-  python run_factory.py              # 运行完整流水线
-  python run_factory.py --generate   # 仅运行生成阶段
-  python run_factory.py --filter     # 仅运行筛选阶段
-  python run_factory.py --summary    # 仅查看总结
+  python run_factory.py                # 运行完整流水线
+  python run_factory.py --generate     # 仅运行生成阶段
+  python run_factory.py --filter       # 仅运行筛选阶段
+  python run_factory.py --summary      # 仅查看总结
+  python run_factory.py --realtime-vc  # 启动 RVC 实时变声
         """
     )
     
@@ -254,6 +363,12 @@ def main():
         action="store_true",
         help="仅查看项目总结"
     )
+
+    parser.add_argument(
+        "--realtime-vc",
+        action="store_true",
+        help="启动 RVC 实时变声 GUI"
+    )
     
     args = parser.parse_args()
     
@@ -271,6 +386,8 @@ def main():
         run_filtering()
     elif args.summary:
         generate_summary()
+    elif args.realtime_vc:
+        launch_realtime_vc()
     else:
         # 默认运行完整流水线
         run_generation()

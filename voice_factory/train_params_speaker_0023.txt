@@ -1,0 +1,5 @@
+speaker_name=speaker_0023
+epochs=50
+batch_size=8
+audio_duration=77.35
+input_audio=W:\voice\0602001.mp3

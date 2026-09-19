@@ -51,8 +51,42 @@ def run_rvc_command(cmd, description, cwd=None):
     return True
 
 
-def train_speaker(speaker_name, epochs=200, batch_size=8, auto_match=False):
-    """训练单个 speaker - 完全自动化"""
+def calculate_safe_epochs(audio_duration_seconds, base_epochs=500):
+    """根据音频数据量计算安全的训练 epoch 数，避免 posterior collapse
+    
+    规则：
+    - 数据越多，可以训练越多 epoch
+    - 数据越少，epoch 必须越少，否则模型会 posterior collapse
+    - 经验值：77秒数据 × 2000 epoch = collapse；77秒 × 300 epoch = 正常
+    
+    Args:
+        audio_duration_seconds: 音频总时长（秒）
+        base_epochs: 基础 epoch 数（默认500）
+    
+    Returns:
+        int: 安全的 epoch 数
+    """
+    audio_minutes = audio_duration_seconds / 60
+    
+    # 每1分钟数据最多允许的训练轮数
+    # 经验值：1分钟数据 ≈ 300-500 epoch 安全
+    max_epochs_per_minute = 500
+    
+    # 计算基于数据量的最大安全 epoch
+    safe_max = int(max_epochs_per_minute * audio_minutes)
+    safe_max = max(200, min(2000, safe_max))  # 最低200，最高2000
+    
+    # 取 base_epochs 和 safe_max 的较小值
+    result = min(base_epochs, safe_max)
+    
+    return result
+
+
+def train_speaker(speaker_name, epochs=0, batch_size=8, auto_match=False):
+    """训练单个 speaker - 完全自动化
+    
+    epochs=0 表示自动根据音频数据量计算安全值
+    """
     
     print(f"\n{'='*70}")
     print(f"🎓 开始训练: {speaker_name}")
@@ -124,7 +158,7 @@ def train_speaker(speaker_name, epochs=200, batch_size=8, auto_match=False):
                 pretrained_D = best_match['model']['pretrained_D']
                 
                 # 如果没有指定 epochs，根据匹配结果推荐
-                if epochs == 200:  # 默认值，需要自动计算
+                if epochs == 0:  # 默认值0表示自动计算
                     # 计算音频总时长
                     total_duration = 0
                     for wav_file in audio_files[:10]:  # 采样前10个文件
@@ -139,8 +173,10 @@ def train_speaker(speaker_name, epochs=200, batch_size=8, auto_match=False):
                     from voice_matcher import VoiceModelMatcher
                     matcher = VoiceModelMatcher()
                     recommended_epochs = matcher.get_recommended_epochs(best_match, total_duration)
-                    epochs = recommended_epochs
-                    print(f"\n📊 根据匹配结果推荐训练: {epochs} epochs")
+                    # 应用 posterior collapse 安全限制
+                    epochs = calculate_safe_epochs(total_duration, recommended_epochs)
+                    print(f"\n📊 根据匹配结果推荐训练: {recommended_epochs} epochs")
+                    print(f"   🛡️ 安全限制后实际训练: {epochs} epochs (数据时长: {total_duration:.1f}秒)")
             else:
                 # 匹配失败，使用默认模型
                 print("\n⚠️  声模匹配失败，使用默认预训练模型")
@@ -157,13 +193,73 @@ def train_speaker(speaker_name, epochs=200, batch_size=8, auto_match=False):
         pretrained_G = os.path.join(RVC_DIR, "assets", "pretrained_v2", "f0G40k.pth")
         pretrained_D = os.path.join(RVC_DIR, "assets", "pretrained_v2", "f0D40k.pth")
     
+    # 如果 epochs=0（自动模式），根据音频数据量计算安全 epoch 数
+    if epochs == 0:
+        total_duration = 0
+        for wav_file in audio_files[:20]:
+            wav_path = os.path.join(input_dir, wav_file)
+            try:
+                import librosa as _librosa
+                y, sr_temp = _librosa.load(wav_path, sr=None)
+                total_duration += len(y) / sr_temp
+            except Exception:
+                total_duration += 10  # 默认 10 秒
+        epochs = calculate_safe_epochs(total_duration)
+        print(f"📊 音频总时长: {total_duration:.1f}秒, 自动计算安全 epoch: {epochs}")
+    
     print(f"📊 找到 {len(audio_files)} 个音频文件")
     print(f"📁 实验目录: {exp_dir}")
     print(f"⚙️  参数: epochs={epochs}, batch_size={batch_size}")
     print()
     
-    # 创建实验目录
+    # 检查是否已存在模型且训练充分
     log_dir = os.path.join(RVC_DIR, "logs", exp_dir)
+    existing_model = os.path.join(log_dir, f"{exp_dir}_v2.pth")
+    force_retrain = bool(os.environ.get("RVC_FORCE_RETRAIN"))
+    
+    # 强制重新训练时，清理旧 checkpoint
+    if force_retrain and os.path.exists(log_dir):
+        print(f"🔄 强制重新训练，清理旧 checkpoint...")
+        for f in os.listdir(log_dir):
+            if f.startswith(("G_", "D_")) and f.endswith(".pth"):
+                try:
+                    os.remove(os.path.join(log_dir, f))
+                    print(f"   删除: {f}")
+                except Exception:
+                    pass
+    
+    if os.path.exists(existing_model) and not force_retrain:
+        # 检查现有模型的训练步数
+        try:
+            import torch as _torch
+            best_iteration = 0
+            for gfile in [f for f in os.listdir(log_dir) if f.startswith("G_") and f.endswith(".pth")]:
+                try:
+                    gcpt = _torch.load(os.path.join(log_dir, gfile), map_location="cpu", weights_only=False)
+                    it = gcpt.get("iteration", 0)
+                    if it > best_iteration:
+                        best_iteration = it
+                except Exception:
+                    pass
+            if best_iteration >= 200:
+                print(f"✅ 模型已存在且训练充分({best_iteration}步)，跳过训练")
+                print(f"   如需重新训练，请设置环境变量 RVC_FORCE_RETRAIN=1")
+                return True
+            else:
+                print(f"⚠️  模型已存在但训练不足({best_iteration}步，需200+步)")
+                print(f"🔄 将重新训练...")
+                # 清理旧检查点以避免冲突（避免从崩溃的checkpoint恢复训练）
+                for f in os.listdir(log_dir):
+                    if f.startswith(("G_", "D_")) and f.endswith(".pth"):
+                        try:
+                            os.remove(os.path.join(log_dir, f))
+                            print(f"   删除: {f}")
+                        except Exception:
+                            pass
+        except Exception as e:
+            print(f"⚠️  检查现有模型失败: {e}")
+    
+    # 创建实验目录
     os.makedirs(log_dir, exist_ok=True)
     print(f"✅ 创建实验目录: {log_dir}")
     print()
@@ -489,66 +585,61 @@ print("索引生成完成！")
             shutil.copy2(os.path.join(log_exp_dir, actual_D), 
                         os.path.join(log_exp_dir, final_D))
     
-    # 转换为 RVC GUI 可用的格式
+    # 转换为 RVC GUI 可用的格式（使用 RVC 原生 extract_small_model）
     print(f"\n🔄 转换为 RVC GUI 格式...")
     try:
         import torch
+        from collections import OrderedDict
         
         # 加载训练模型
         cpt = torch.load(os.path.join(log_exp_dir, final_G), map_location='cpu')
         
-        # 检查并转换格式
-        if 'weight' not in cpt and 'model' in cpt:
-            # 需要转换格式
+        if 'model' in cpt:
             weight = cpt['model']
-            
-            # 使用默认配置（v2 40k，18 个参数）
-            # 参考: infer/lib/train/process_ckpt.py 的 extract_small_model 函数
-            config = [
-                1025,  # filter_length // 2 + 1
-                32,    # 未知参数
-                192,   # inter_channels
-                192,   # hidden_channels
-                768,   # filter_channels
-                2,     # n_heads
-                6,     # n_layers
-                3,     # kernel_size
-                0,     # p_dropout
-                "1",   # resblock (必须是字符串！)
-                [3, 7, 11],  # resblock_kernel_sizes
-                [[1, 3, 5], [1, 3, 5], [1, 3, 5]],  # resblock_dilation_sizes (必须有！)
-                [10, 10, 2, 2],  # upsample_rates
-                512,   # upsample_initial_channel
-                [16, 16, 4, 4],  # upsample_kernel_sizes
-                109,   # spk_embed_dim (will be updated)
-                256,   # gin_channels
-                40000, # sampling_rate
-            ]
-            
-            if isinstance(weight, dict) and 'emb_g.weight' in weight:
-                n_spk = weight['emb_g.weight'].shape[0]
-                config[15] = n_spk  # spk_embed_dim 在索引 15，不是 11！
-                print(f"   n_spk: {n_spk}")
-            
-            # 创建 RVC 格式
-            rvc_cpt = {
-                'config': config,
-                'weight': weight,
-                'info': 'Auto-converted for RVC GUI',
-                'f0': 1,  # 有音高
-                'version': 'v2',
-                'sr': '40k'
-            }
-            
-            # 保存为推理模型
-            inference_model = f"{speaker_name}_v2.pth"
-            inference_path = os.path.join(log_exp_dir, inference_model)
-            torch.save(rvc_cpt, inference_path)
-            
-            print(f"✅ 已生成 RVC GUI 模型: {inference_model}")
-            print(f"   大小: {os.path.getsize(inference_path)/1024/1024:.1f} MB")
         else:
-            print(f"✅ 模型已是 RVC 格式，无需转换")
+            weight = cpt
+        
+        # 使用 RVC 原生 extract_small_model 的转换逻辑
+        # 1. 过滤 enc_q 键（推理不需要）
+        # 2. 转换为 float16（节省空间且 GPU 推理更快）
+        opt = OrderedDict()
+        opt['weight'] = {}
+        for key in weight.keys():
+            if 'enc_q' in key:
+                continue
+            opt['weight'][key] = weight[key].half()
+        
+        # v2 40k 配置
+        opt['config'] = [
+            1025, 32, 192, 192, 768, 2, 6, 3, 0, "1",
+            [3, 7, 11],
+            [[1, 3, 5], [1, 3, 5], [1, 3, 5]],
+            [10, 10, 2, 2],
+            512,
+            [16, 16, 4, 4],
+            opt['weight']['emb_g.weight'].shape[0],  # spk_embed_dim
+            256,
+            40000,
+        ]
+        opt['info'] = f'Auto-trained for {epochs} epochs'
+        opt['version'] = 'v2'
+        opt['sr'] = '40k'
+        opt['f0'] = 1
+        
+        # 保存为推理模型
+        inference_model = f"{speaker_name}_v2.pth"
+        inference_path = os.path.join(log_exp_dir, inference_model)
+        torch.save(opt, inference_path)
+        
+        # 同时复制到 weights 目录（GUI 直接使用）
+        weights_dir = os.path.join(RVC_DIR, "assets", "weights")
+        weights_path = os.path.join(weights_dir, f"{speaker_name}.pth")
+        shutil.copy2(inference_path, weights_path)
+        
+        n_keys = len(opt['weight'])
+        print(f"✅ 已生成 RVC GUI 模型: {inference_model} ({n_keys} keys, float16)")
+        print(f"   大小: {os.path.getsize(inference_path)/1024/1024:.1f} MB")
+        print(f"   已复制到: {weights_path}")
     except Exception as e:
         print(f"⚠️  模型转换失败 ({e})，但不影响使用")
         import traceback
@@ -573,9 +664,10 @@ def main():
     parser.add_argument("--test", action="store_true", help="测试训练 (speaker_0001)")
     parser.add_argument("--all", action="store_true", help="批量训练所有")
     parser.add_argument("--speakers", nargs="+", help="指定 speaker 列表")
-    parser.add_argument("--epochs", type=int, default=200, help="训练轮数（使用智能匹配时会自动推荐）")
+    parser.add_argument("--epochs", type=int, default=0, help="训练轮数（0=自动根据数据量计算安全值，避免posterior collapse）")
     parser.add_argument("--batch-size", type=int, default=8, help="Batch Size")
     parser.add_argument("--no-match", action="store_true", help="禁用智能声模匹配，使用默认预训练模型")
+    parser.add_argument("--retrain", action="store_true", help="重新训练已有模型（会覆盖现有检查点）")
     parser.add_argument("--analyze-only", action="store_true", help="仅分析声音特征，不训练")
     
     args = parser.parse_args()

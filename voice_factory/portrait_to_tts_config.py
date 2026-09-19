@@ -14,6 +14,8 @@ from typing import Dict, Tuple, Optional
 PORTRAIT_TTS_MAPPING = {
     # ==================== 男声声模 ====================
     "中年男中音": {
+        "reference_id": "536d3a5e000945adb7038665781a4aca",  # Ethan
+        "reference_name": "Ethan",
         "temperature": 0.75,  # 较低温度，声音稳定成熟
         "top_p": 0.85,
         "repetition_penalty": 1.15,
@@ -21,6 +23,8 @@ PORTRAIT_TTS_MAPPING = {
         "description": "成熟稳重的中年男性声音，音色浑厚温暖"
     },
     "中年男低音": {
+        "reference_id": "bf322df2096a46f18c579d0baa36f41d",  # Adrian
+        "reference_name": "Adrian",
         "temperature": 0.73,  # 更低温度，声音更深沉
         "top_p": 0.83,
         "repetition_penalty": 1.16,
@@ -28,6 +32,8 @@ PORTRAIT_TTS_MAPPING = {
         "description": "深沉厚重的中年男性声音，音色低沉磁性"
     },
     "青年男高音": {
+        "reference_id": "802e3bc2b27e49c2995d23ef70e6ac89",  # Energetic Male
+        "reference_name": "Energetic Male",
         "temperature": 0.78,  # 稍高温度，声音更明亮
         "top_p": 0.87,
         "repetition_penalty": 1.13,
@@ -35,15 +41,28 @@ PORTRAIT_TTS_MAPPING = {
         "description": "明亮活力的年轻男性声音，音色清朗阳光"
     },
     "中年男高音": {
+        "reference_id": "bf322df2096a46f18c579d0baa36f41d",  # Adrian (temporary, can be updated)
+        "reference_name": "Adrian",
         "temperature": 0.77,
         "top_p": 0.86,
         "repetition_penalty": 1.14,
         "seed_range": (2800, 4200),
-        "description": "激情澎湃的中年男性声音，音色高亢有力"
+        "description": "激情澎湃的中年男性声音,音色高亢有力"
+    },
+    "老年男中音": {
+        "reference_id": "bf322df2096a46f18c579d0baa36f41d",  # Adrian (temporary, can be updated)
+        "reference_name": "Adrian",
+        "temperature": 0.74,  # 低温度,声音更沉稳大气
+        "top_p": 0.84,
+        "repetition_penalty": 1.16,  # 高重复惩罚,增加稳重感
+        "seed_range": (800, 1800),  # 低音区种子,浑厚感
+        "description": "大气沉稳的老年男性声音,音色浑厚磁性,富有沧桑感"
     },
     
     # ==================== 女声声模 ====================
     "青年女高音": {
+        "reference_id": "933563129e564b19a115bedd57b7406a",  # Sarah
+        "reference_name": "Sarah",
         "temperature": 0.82,  # 较高温度，声音活泼清亮
         "top_p": 0.89,
         "repetition_penalty": 1.11,
@@ -51,6 +70,8 @@ PORTRAIT_TTS_MAPPING = {
         "description": "清亮甜美的年轻女性声音，音色明亮活泼"
     },
     "青年女中音": {
+        "reference_id": "b347db033a6549378b48d00acb0d06cd",  # Selene
+        "reference_name": "Selene",
         "temperature": 0.80,  # 中等温度，声音温柔
         "top_p": 0.88,
         "repetition_penalty": 1.12,
@@ -58,6 +79,8 @@ PORTRAIT_TTS_MAPPING = {
         "description": "温柔知性的年轻女性声音，音色柔和亲切"
     },
     "中年女低音": {
+        "reference_id": "b347db033a6549378b48d00acb0d06cd",  # Selene (temporary, can be updated)
+        "reference_name": "Selene",
         "temperature": 0.76,  # 较低温度，声音温婉成熟
         "top_p": 0.84,
         "repetition_penalty": 1.15,
@@ -127,6 +150,7 @@ def fuzzy_match_portrait(portrait: str) -> Optional[Dict]:
     
     has_young = any(k in portrait_lower for k in ['青年', '年轻', 'young'])
     has_middle = any(k in portrait_lower for k in ['中年', 'middle'])
+    has_old = any(k in portrait_lower for k in ['老年', '老年', 'old', '60', '七十', '八十'])
     
     has_high = any(k in portrait_lower for k in ['高音', 'high'])
     has_middle_tone = any(k in portrait_lower for k in ['中音', 'middle'])
@@ -134,7 +158,13 @@ def fuzzy_match_portrait(portrait: str) -> Optional[Dict]:
     
     # 组合匹配
     if has_male:
-        if has_middle and has_middle_tone:
+        if has_old and has_middle_tone:
+            return get_base_config("老年男中音", portrait)
+        elif has_old and has_low:
+            return get_base_config("老年男中音", portrait)  # 老年默认中音
+        elif has_old:
+            return get_base_config("老年男中音", portrait)  # 老年默认中音
+        elif has_middle and has_middle_tone:
             return get_base_config("中年男中音", portrait)
         elif has_middle and has_low:
             return get_base_config("中年男低音", portrait)
@@ -197,11 +227,13 @@ def generate_tts_params(portrait: str, fixed_seed: Optional[int] = None) -> Dict
         fixed_seed: 固定种子（可选）
     
     Returns:
-        dict: TTS 参数
+        dict: TTS 参数（包含reference_id）
     """
     config = get_tts_config_for_portrait(portrait)
     
     params = {
+        "reference_id": config.get('reference_id'),  # 新增：reference_id
+        "reference_name": config.get('reference_name', ''),  # 新增：reference名称
         "temperature": config['temperature'],
         "top_p": config['top_p'],
         "repetition_penalty": config['repetition_penalty'],

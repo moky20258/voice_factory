@@ -1,0 +1,5 @@
+speaker_name=speaker_0022
+epochs=50
+batch_size=8
+audio_duration=132.59
+input_audio=W:\fish-speech-1.5.1\612134.m4a

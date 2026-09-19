@@ -349,6 +349,14 @@ class VoiceModelMatcher:
         """
         根据匹配结果和音频时长推荐训练 epoch 数
         
+        重要：数据不足时必须减少 epoch，否则会导致 posterior collapse
+        （模型编码器产出极窄分布，解码器忽略潜变量，输出近乎静音）
+        
+        经验值：
+        - 77秒数据 × 2000 epoch = posterior collapse（输出静音）
+        - 77秒数据 × 300 epoch = 正常
+        - 每1分钟数据最多允许约500 epoch
+        
         Args:
             match_result: 匹配结果
             audio_duration_seconds: 音频总时长（秒）
@@ -357,7 +365,9 @@ class VoiceModelMatcher:
             int: 推荐的 epoch 数
         """
         if not match_result:
-            return 50  # 默认值
+            # 默认值：根据数据量动态计算，避免 posterior collapse
+            audio_minutes = audio_duration_seconds / 60
+            return max(200, min(500, int(500 * audio_minutes)))
         
         model = match_result['model']
         score = match_result['score']
@@ -375,15 +385,24 @@ class VoiceModelMatcher:
             recommended = rec['max_epochs']
         
         # 基于音频时长调整
+        # 关键：数据不足时必须减少 epoch，否则 posterior collapse
         audio_minutes = audio_duration_seconds / 60
         
+        # 计算数据量允许的最大安全 epoch（每分钟数据约500 epoch）
+        safe_max_epochs = max(200, int(500 * audio_minutes))
+        
         if audio_minutes >= 30:
-            # 充足数据，可以减少 epoch
+            # 充足数据，可以适当减少
             recommended = int(recommended * 0.8)
         elif audio_minutes < 10:
-            # 数据不足，需要更多 epoch
-            recommended = int(recommended * 1.3)
+            # 数据不足，必须大幅减少 epoch 避免 posterior collapse
+            recommended = min(recommended, safe_max_epochs)
+        elif audio_minutes < 3:
+            # 极少数据（<3分钟），严格限制
+            recommended = min(recommended, max(200, int(300 * audio_minutes)))
         
+        # 确保不超过安全上限
+        recommended = min(recommended, safe_max_epochs)
         # 确保在合理范围内
         recommended = max(rec['min_epochs'], min(rec['max_epochs'], recommended))
         
